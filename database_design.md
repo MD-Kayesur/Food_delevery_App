@@ -8,21 +8,153 @@ This document outlines the Relational Database Schema (PostgreSQL compatible) de
 
 ```mermaid
 erDiagram
-    USERS ||--o| USER_PROFILES : "has"
-    USERS ||--o| RIDERS : "can be"
-    USERS ||--o{ ORDERS : "places (Customer)"
-    RIDERS ||--o{ ORDERS : "delivers"
-    RIDERS ||--o{ SHIFTS : "schedules"
-    RESTAURANTS ||--o{ MENU_ITEMS : "offers"
-    RESTAURANTS ||--o{ ORDERS : "receives"
-    CATEGORIES ||--o{ MENU_ITEMS : "groups"
-    MENU_ITEMS ||--o{ ORDER_ITEMS : "included in"
-    ORDERS ||--o{ ORDER_ITEMS : "contains"
-    ORDERS ||--o| CHAT_ROOMS : "has"
-    CHAT_ROOMS ||--o{ CHAT_MESSAGES : "contains"
-    USERS ||--o{ CHAT_MESSAGES : "sends"
-    USERS ||--o{ CALL_LOGS : "makes/receives"
-    ORDERS ||--o{ REVIEWS : "evaluated by"
+    users {
+        uuid id PK
+        varchar phone_number UK
+        varchar email UK
+        varchar password_hash
+        varchar role
+        varchar status
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_profiles {
+        uuid id PK "FK to users.id"
+        varchar first_name
+        varchar last_name
+        text avatar_url
+        timestamp created_at
+        timestamp updated_at
+    }
+    riders {
+        uuid id PK "FK to users.id"
+        varchar vehicle_type
+        varchar plate_number
+        boolean is_online
+        double latitude
+        double longitude
+        numeric rating
+        varchar verification_status
+        jsonb documents
+    }
+    shifts {
+        uuid id PK
+        uuid rider_id FK
+        timestamp start_time
+        timestamp end_time
+        varchar status
+        timestamp actual_start_time
+        timestamp actual_end_time
+        numeric estimated_earnings
+    }
+    restaurants {
+        uuid id PK
+        varchar name
+        text logo_url
+        text address
+        double latitude
+        double longitude
+        boolean is_active
+        timestamp created_at
+    }
+    categories {
+        uuid id PK
+        uuid restaurant_id FK
+        varchar name
+        int display_order
+    }
+    menu_items {
+        uuid id PK
+        uuid category_id FK
+        varchar name
+        text description
+        numeric price
+        text image_url
+        boolean is_available
+        int stock_count
+    }
+    orders {
+        uuid id PK
+        uuid customer_id FK
+        uuid restaurant_id FK
+        uuid rider_id FK
+        varchar status
+        text delivery_address
+        double delivery_lat
+        double delivery_long
+        numeric subtotal
+        numeric delivery_fee
+        numeric discount
+        numeric total_amount
+        varchar payment_method
+        varchar payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+    order_items {
+        uuid id PK
+        uuid order_id FK
+        uuid menu_item_id FK
+        int quantity
+        numeric price
+        text notes
+    }
+    chat_rooms {
+        uuid id PK
+        uuid order_id FK
+        boolean is_active
+    }
+    chat_messages {
+        uuid id PK
+        uuid room_id FK
+        uuid sender_id FK
+        text message_text
+        text image_url
+        timestamp created_at
+    }
+    call_logs {
+        uuid id PK
+        uuid caller_id FK
+        uuid receiver_id FK
+        int duration_seconds
+        varchar status
+        timestamp created_at
+    }
+    coupons {
+        uuid id PK
+        varchar code UK
+        varchar discount_type
+        numeric discount_value
+        numeric min_order_value
+        timestamp start_date
+        timestamp end_date
+        boolean is_active
+    }
+    reviews {
+        uuid id PK
+        uuid order_id FK
+        uuid reviewer_id FK
+        varchar review_type
+        int rating
+        text comment
+        timestamp created_at
+    }
+
+    users ||--o| user_profiles : "has"
+    users ||--o| riders : "can be"
+    users ||--o{ orders : "places"
+    riders ||--o{ orders : "delivers"
+    riders ||--o{ shifts : "schedules"
+    restaurants ||--o{ menu_items : "offers"
+    restaurants ||--o{ orders : "receives"
+    categories ||--o{ menu_items : "groups"
+    menu_items ||--o{ order_items : "included_in"
+    orders ||--o{ order_items : "contains"
+    orders ||--o| chat_rooms : "has"
+    chat_rooms ||--o{ chat_messages : "contains"
+    users ||--o{ chat_messages : "sends"
+    users ||--o{ call_logs : "makes_receives"
+    orders ||--o{ reviews : "evaluated_by"
 ```
 
 ---
