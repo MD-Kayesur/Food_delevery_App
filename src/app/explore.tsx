@@ -38,87 +38,168 @@ export default function TabTwoScreen() {
       contentInset={insets}
       contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
+        
+        {/* Developer Profile Card */}
+        <ThemedView type="backgroundElement" style={styles.profileCard}>
+          <ThemedView style={styles.avatarContainer}>
+            <SymbolView
+              name={{ ios: 'person.crop.circle.fill', android: 'account_circle', web: 'person' }}
+              size={64}
+              tintColor={theme.text}
+            />
+          </ThemedView>
+          <ThemedText type="subtitle" style={styles.profileName}>MD-Kayesur</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.profileRole}>
+            Lead Mobile & Web Developer
           </ThemedText>
+          <ThemedText style={styles.profileBio} themeColor="textSecondary">
+            Building high-performance universal applications using React Native, Expo, and modern backends.
+          </ThemedText>
+        </ThemedView>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
+        {/* Project Links */}
+        <ThemedView style={styles.sectionHeader}>
+          <ThemedText type="smallBold" themeColor="textSecondary">PROJECT LINKS</ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.linksContainer}>
+          <ExternalLink href="https://github.com/MD-Kayesur" asChild>
+            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}>
+              <ThemedView type="backgroundElement" style={styles.linkButtonInner}>
                 <SymbolView
+                  name={{ ios: 'person.fill', android: 'person', web: 'person' }}
+                  size={16}
                   tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
                 />
+                <ThemedText type="smallBold" style={styles.linkText}>GitHub Profile</ThemedText>
+              </ThemedView>
+            </Pressable>
+          </ExternalLink>
+
+          <ExternalLink href="https://github.com/MD-Kayesur/Food_delevery_App" asChild>
+            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}>
+              <ThemedView type="backgroundElement" style={styles.linkButtonInner}>
+                <SymbolView
+                  name={{ ios: 'folder.fill', android: 'folder', web: 'folder' }}
+                  size={16}
+                  tintColor={theme.text}
+                />
+                <ThemedText type="smallBold" style={styles.linkText}>App Repository</ThemedText>
+              </ThemedView>
+            </Pressable>
+          </ExternalLink>
+
+          <ExternalLink href="https://www.figma.com/design/iig3b1mWILbZRPyBOtaQBU/alipacno-%7C%7C-Custom-UI-U-design-%7C%7C-Bits-wise-%7C%7C-FO11BBB456F87--Copy-?node-id=1400-12221&m=dev" asChild>
+            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}>
+              <ThemedView type="backgroundElement" style={styles.linkButtonInner}>
+                <SymbolView
+                  name={{ ios: 'paintbrush.fill', android: 'palette', web: 'palette' }}
+                  size={16}
+                  tintColor={theme.text}
+                />
+                <ThemedText type="smallBold" style={styles.linkText}>Figma UI Designs</ThemedText>
               </ThemedView>
             </Pressable>
           </ExternalLink>
         </ThemedView>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+        {/* Roadmap */}
+        <ThemedView style={styles.sectionHeader}>
+          <ThemedText type="smallBold" themeColor="textSecondary">DEVELOPMENT ROADMAP</ThemedText>
+        </ThemedView>
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
+        <ThemedView style={styles.sectionsWrapper}>
+          <Collapsible title="Phase 1: Design System & Styling (Days 1 - 2)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check' }} size={16} tintColor="#34C759" />
+              <ThemedText type="small" style={styles.taskText}>Day 1: Design system colors, tokens & global variables</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check' }} size={16} tintColor="#34C759" />
+              <ThemedText type="small" style={styles.taskText}>Day 2: Core components (buttons, text fields, layouts)</ThemedText>
             </ThemedView>
           </Collapsible>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
+          <Collapsible title="Phase 2: Rider App Onboarding & Auth (Days 3 - 5)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 3: Splash & Onboarding screens (1, 2, 3)</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 4: Credentials Login & OTP Verification screen</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 5: Password Recovery Flow (Forgot/Reset)</ThemedText>
+            </ThemedView>
           </Collapsible>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
+          <Collapsible title="Phase 3: Rider App Core & Maps (Days 6 - 9)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 6: Main Home Screen & Earnings Dashboard</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 7: Orders Details Sheet & Live Map Routing</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 8: Shift Planner & Scheduler Calendar</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 9: Support Tickets & Order Chat Rooms</ThemedText>
+            </ThemedView>
           </Collapsible>
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
+          <Collapsible title="Phase 4: Rider Profile & Settings (Days 10 - 11)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 10: Profile view, stats & edit credentials</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 11: T&C, FAQ Collapsible, Notifications</ThemedText>
+            </ThemedView>
+          </Collapsible>
+
+          <Collapsible title="Phase 5: Admin Panel Layout & CRM (Days 12 - 14)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 12: Collapsible Sidebar & Statistics Cards</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 13: Customer Relations, Add Users, Matrix</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 14: Drivers Status Page & Dispatch Controller</ThemedText>
+            </ThemedView>
+          </Collapsible>
+
+          <Collapsible title="Phase 6: Admin Menu & Inventory (Days 15 - 18)">
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 15: Menu categories, pricing & stock counts</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 16: Marketing Coupon manager & Push banners</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 17: Call Logs metadata & Admin chat terminal</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.taskItem}>
+              <SymbolView name={{ ios: 'circle', android: 'radio_button_unchecked', web: 'circle' }} size={16} tintColor={theme.textSecondary} />
+              <ThemedText type="small" style={styles.taskText}>Day 18: System settings & reviews tracker</ThemedText>
+            </ThemedView>
           </Collapsible>
         </ThemedView>
+
         {Platform.OS === 'web' && <WebBadge />}
       </ThemedView>
     </ScrollView>
@@ -136,45 +217,68 @@ const styles = StyleSheet.create({
   container: {
     maxWidth: MaxContentWidth,
     flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+    paddingVertical: Spacing.four,
+    gap: Spacing.three,
   },
-  centerText: {
+  profileCard: {
+    padding: Spacing.four,
+    borderRadius: Spacing.three,
+    alignItems: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  avatarContainer: {
+    marginBottom: Spacing.one,
+  },
+  profileName: {
+    fontWeight: '700',
+  },
+  profileRole: {
+    marginTop: -Spacing.one,
+    fontWeight: '600',
+  },
+  profileBio: {
     textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: Spacing.one,
+  },
+  sectionHeader: {
+    marginTop: Spacing.four,
+    paddingHorizontal: Spacing.two,
+  },
+  linksContainer: {
+    gap: Spacing.two,
+  },
+  linkButton: {
+    width: '100%',
+  },
+  linkButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+  },
+  linkText: {
+    fontSize: 14,
   },
   pressed: {
     opacity: 0.7,
   },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
-  },
   sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+    gap: Spacing.three,
   },
-  collapsibleContent: {
+  taskItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.three,
+    marginVertical: Spacing.one,
+    backgroundColor: 'transparent',
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  taskText: {
+    flexShrink: 1,
   },
 });
+
