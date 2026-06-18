@@ -559,3 +559,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+
+// End of file. Database schemas active.
