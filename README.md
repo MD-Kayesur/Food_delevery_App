@@ -1,56 +1,120 @@
-# Welcome to your Expo app 👋
+# Food Delivery App 🍕
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to the **Food Delivery App** project, built using [Expo](https://expo.dev) and React Native.
 
-## Get started
+---
 
-1. Install dependencies
+## 🎨 Figma Design Links
 
-   ```bash
-   npm install
-   ```
+Use the following Figma links to view the UI/UX designs, components, and user flows:
+* **Figma Project (Dev Mode)**: [Figma Design Link](https://www.figma.com/design/iig3b1mWILbZRPyBOtaQBU/alipacno-%7C%7C-Custom-UI-U-design-%7C%7C-Bits-wise-%7C%7C-FO11BBB456F87--Copy-?node-id=1400-12221&m=dev)
+* **Figma Project (Share Link)**: [Figma Design Link (Alternate)](https://www.figma.com/design/iig3b1mWILbZRPyBOtaQBU/alipacno-%7C%7C-Custom-UI-U-design-%7C%7C-Bits-wise-%7C%7C-FO11BBB456F87--Copy-?node-id=1400-12221&t=YAB6T9RTetL2c5BN-0)
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🚀 Getting Started
 
-In the output, you'll find options to open the app in a
+Follow these steps to set up and run the development server locally:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Install Dependencies
+Ensure you have Node.js installed, then run:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Run the Development Server
+```bash
+npm run start
+```
 
-### Other setup steps
+In the terminal output, you will find options to run the app on:
+* **Android Emulator**: Press `a` (or run `npm run android`)
+* **iOS Simulator**: Press `i` (or run `npm run ios`)
+* **Web Browser**: Press `w` (or run `npm run web`)
+* **Expo Go**: Scan the QR code on your mobile device (sandbox environment)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 3. Additional Scripts
+* **Reset Project**: `npm run reset-project` (moves starter files to `app-example` and creates a fresh blank layout)
+* **Linting**: `npm run lint`
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📅 Day-by-Day Implementation Tracker
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+To help you build this project progressively, here is a day-by-day implementation breakdown based on the Figma design pages and screens. Use the checkboxes `[ ]` to track your progress!
 
-## Join the community
+### 🗺️ Phase 1: Design System & Shared Components (Days 1 - 2)
+Establish the base styles and reusable elements to ensure UI consistency.
+- [ ] **Day 1: Design System Tokens**
+  - [ ] Configure styling colors matching the Figma `Design system` page colors (brand color, light/dark neutral backgrounds, accents).
+  - [ ] Set up the typography scale (H1, H2, body, subtexts, SF Pro Display / Outfit fonts).
+- [ ] **Day 2: Shared UI Components**
+  - [ ] Implement custom button components (filled, unfilled, icon buttons).
+  - [ ] Build standard text input fields (email, password with toggle, search bars).
+  - [ ] Design reusable card layouts (restaurant card, item card, rider stat card).
 
-Join our community of developers creating universal apps.
+### 🏍️ Phase 3: Rider App - Onboarding & Authentication (Days 3 - 5)
+Implement the core entry and login flow for the Rider app.
+- [ ] **Day 3: App Start & Onboarding**
+  - [ ] `Start` Screen
+  - [ ] `Onboarding 1` Screen
+  - [ ] `Onboarding 2` Screen
+  - [ ] `Onboarding 3` Screen
+- [ ] **Day 4: Credentials Login & OTP Verification**
+  - [ ] `Login 1` & `Login 2` (Social login alternatives)
+  - [ ] `Verification` (OTP input fields with auto-focus and countdown timer)
+- [ ] **Day 5: Password Recovery Flow**
+  - [ ] `Forgot Password` Screen
+  - [ ] `Reset Password` Screen
+  - [ ] `Reset Password Success` Confirmation Screen
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 🏠 Phase 3: Rider App - Core Portal & Navigation (Days 6 - 9)
+Build the primary pages that riders interact with daily.
+- [ ] **Day 6: Main Home Screen**
+  - [ ] Dashboard view (Online status toggle, today's earnings progress card, ongoing orders list).
+- [ ] **Day 7: Orders & Active Delivery Map**
+  - [ ] `Order` details sheet/screen.
+  - [ ] `Delivery` execution screen (client info, delivery items, actions).
+  - [ ] `Location` tracking maps and live route visualizers (`Route` screen).
+- [ ] **Day 8: Shift Management & Scheduling**
+  - [ ] `Shift` Planner (available shifts, booked slots, calendar view).
+- [ ] **Day 9: Live Support & Communication**
+  - [ ] `Chat` screen (customer-to-rider chat interface).
+  - [ ] Support ticket / hotline page.
+
+### ⚙️ Phase 4: Rider App - Profile & Settings (Days 10 - 11)
+- [ ] **Day 10: Profile & Account Management**
+  - [ ] Rider Profile view showing ratings, stats, and milestones.
+  - [ ] `Account` settings (edit personal information, password, documents).
+- [ ] **Day 11: Info & App Config**
+  - [ ] `Terms` & `Privacy Policy` viewer.
+  - [ ] `FAQ` screen with collapsible accordion questions.
+  - [ ] `Notification` preferences dashboard.
+
+### 🖥️ Phase 5: Admin Dashboard - Core Layout & Analytics (Days 12 - 14)
+Transition to building the web-based desktop management system.
+- [ ] **Day 12: Admin Dashboard Skeleton**
+  - [ ] Set up layout structure (collapsible sidebar, global header, responsive grid).
+  - [ ] Build key components: metrics cards (total sales, active drivers, orders count) and interactive charts.
+- [ ] **Day 13: CRM & User/Staff Management**
+  - [ ] `Crm Management` screen (customer database, interaction history).
+  - [ ] `Add User` form screen.
+  - [ ] `Staff Management` & `Role and Permissions` matrix.
+- [ ] **Day 14: Drivers & Shift Dispatch Control**
+  - [ ] `Drivers Page` (view all active/inactive drivers, ratings, live status).
+  - [ ] Real-time deliveries dispatch screen (`Deliveries Management`).
+
+### 📦 Phase 6: Admin Dashboard - Inventory, Marketing, & Settings (Days 15 - 18)
+- [ ] **Day 15: Menu & Inventory Control**
+  - [ ] `Menu` listing and editor (add/edit items, categories, pricing).
+  - [ ] `Inventory Management` grid (stock levels, supplier logs, warnings).
+- [ ] **Day 16: Marketing Hub**
+  - [ ] `Marketing Campaign Hub` (create coupons, push notifications, banners).
+- [ ] **Day 17: Logs, Messaging & Live Support**
+  - [ ] `Call Logs page` / `Call Logs details page`.
+  - [ ] Admin `Chat` terminal (communicating with riders/customers).
+- [ ] **Day 18: System Preferences & Review**
+  - [ ] `Review and Confirmation` dashboard page.
+  - [ ] `Settings` configuration page.
+  - [ ] `Admin Profile` edit screen.
+
