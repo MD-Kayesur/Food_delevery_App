@@ -3,60 +3,58 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import tw from 'twrnc';
 import { SymbolView } from 'expo-symbols';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-// Columns interfaces
-interface ColumnSpec {
+// Database Schema representation
+interface Column {
   name: string;
   type: string;
-  constraints: ('PK' | 'FK' | 'UK' | 'Not Null' | 'Nullable' | 'Default')[];
+  constraints: string[];
   desc: string;
   ref?: string;
 }
 
-interface TableSpec {
+interface TableSchema {
   name: string;
   category: 'auth' | 'riders' | 'restaurants' | 'orders' | 'support' | 'marketing';
   description: string;
-  columns: ColumnSpec[];
+  columns: Column[];
 }
 
-const DATABASE_SCHEMAS: TableSpec[] = [
+const DATABASE_SCHEMAS: TableSchema[] = [
   {
     name: 'users',
     category: 'auth',
-    description: 'Central registry for all users (Customers, Riders, Staff, and Admins).',
+    description: 'Central user identity database, determining system-wide access roles.',
     columns: [
-      { name: 'id', type: 'UUID', constraints: ['PK', 'Default'], desc: 'Unique identifier for each user' },
-      { name: 'phone_number', type: 'VARCHAR(20)', constraints: ['UK', 'Not Null'], desc: 'Primary identity for OTP verification' },
-      { name: 'email', type: 'VARCHAR(255)', constraints: ['UK', 'Nullable'], desc: 'Alternative login and receipt delivery' },
-      { name: 'password_hash', type: 'VARCHAR(255)', constraints: ['Nullable'], desc: 'Encrypted passwords for Staff/Admin portal' },
-      { name: 'role', type: 'VARCHAR(20)', constraints: ['Not Null'], desc: 'Role type: "customer", "rider", "staff", "admin"' },
-      { name: 'status', type: 'VARCHAR(20)', constraints: ['Not Null', 'Default'], desc: 'Current account state: "active", "suspended", "inactive"' },
-      { name: 'created_at', type: 'TIMESTAMP', constraints: ['Not Null', 'Default'], desc: 'Account creation time' },
-      { name: 'updated_at', type: 'TIMESTAMP', constraints: ['Not Null', 'Default'], desc: 'Last update time' },
+      { name: 'id', type: 'UUID', constraints: ['PK', 'Default'], desc: 'Unique account identifier' },
+      { name: 'phone_number', type: 'VARCHAR(20)', constraints: ['UK', 'Not Null'], desc: 'Used for SMS OTP authentication' },
+      { name: 'email', type: 'VARCHAR(255)', constraints: ['UK', 'Nullable'], desc: 'Optional customer contact email' },
+      { name: 'password_hash', type: 'VARCHAR(255)', constraints: ['Not Null'], desc: 'Bcrypt credentials storage' },
+      { name: 'role', type: 'VARCHAR(20)', constraints: ['Not Null', 'Default'], desc: 'Role permissions: "customer", "rider", "staff", "admin"' },
+      { name: 'status', type: 'VARCHAR(20)', constraints: ['Not Null', 'Default'], desc: 'Account status: "active", "suspended"' },
     ],
   },
   {
     name: 'user_profiles',
     category: 'auth',
-    description: 'Supplementary non-security metadata for user profiles.',
+    description: 'Personal metadata mapping to user accounts.',
     columns: [
-      { name: 'id', type: 'UUID', constraints: ['PK', 'FK'], desc: 'Links 1-to-1 to users.id', ref: 'users.id' },
-      { name: 'first_name', type: 'VARCHAR(50)', constraints: ['Not Null'], desc: "User's first name" },
-      { name: 'last_name', type: 'VARCHAR(50)', constraints: ['Not Null'], desc: "User's last name" },
-      { name: 'avatar_url', type: 'TEXT', constraints: ['Nullable'], desc: 'Profile avatar image storage path' },
+      { name: 'id', type: 'UUID', constraints: ['PK', 'FK'], desc: '1-to-1 link to users.id', ref: 'users.id' },
+      { name: 'first_name', type: 'VARCHAR(50)', constraints: ['Not Null'], desc: 'User given name' },
+      { name: 'last_name', type: 'VARCHAR(50)', constraints: ['Not Null'], desc: 'User family name' },
+      { name: 'avatar_url', type: 'TEXT', constraints: ['Nullable'], desc: 'Profile avatar image storage link' },
     ],
   },
   {
@@ -261,21 +259,21 @@ export default function DatabaseScreen() {
 
   return (
     <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
+      style={[tw`flex-1`, { backgroundColor: theme.background }]}
       contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
+      contentContainerStyle={[tw`flex-row justify-center`, contentPlatformStyle]}>
+      <ThemedView style={tw`max-w-[800px] flex-grow px-6 py-6 gap-4`}>
         
         {/* Header */}
-        <View style={styles.header}>
-          <ThemedText type="subtitle" style={styles.headerTitle}>Database Specs</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.headerSubtitle}>
+        <View style={tw`py-4 gap-1`}>
+          <ThemedText type="subtitle" style={tw`font-extrabold`}>Database Specs</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={tw`leading-5`}>
             Browse schemas, constraints, relations, and optimization indexes.
           </ThemedText>
         </View>
 
         {/* Search Bar */}
-        <ThemedView type="backgroundElement" style={styles.searchBox}>
+        <ThemedView type="backgroundElement" style={tw`flex-row items-center px-4 py-3 rounded-2xl gap-4`}>
           <SymbolView
             name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
             size={16}
@@ -286,13 +284,13 @@ export default function DatabaseScreen() {
             placeholderTextColor={theme.textSecondary}
             value={search}
             onChangeText={setSearch}
-            style={[styles.searchInput, { color: theme.text }]}
+            style={[tw`flex-1 text-sm p-0`, { color: theme.text, outlineStyle: 'none' } as any]}
           />
         </ThemedView>
 
         {/* Category Tabs Scroll */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsContainer}>
-          <View style={styles.tabsRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`max-h-10`}>
+          <View style={tw`flex-row gap-4 pb-2`}>
             {[
               { id: 'all', label: 'All Tables' },
               { id: 'auth', label: 'Auth & Profile' },
@@ -311,7 +309,7 @@ export default function DatabaseScreen() {
                     setExpandedTable(null);
                   }}
                   style={[
-                    styles.tabButton,
+                    tw`py-1 px-4 rounded-xl`,
                     { backgroundColor: isSelected ? theme.backgroundSelected : theme.backgroundElement }
                   ]}>
                   <ThemedText
@@ -327,28 +325,28 @@ export default function DatabaseScreen() {
 
         {/* Conditional rendering for Indexes SQL vs Tables */}
         {activeTab === 'indexes' ? (
-          <ThemedView type="backgroundElement" style={styles.indexesCard}>
-            <ThemedText type="smallBold" style={styles.sqlHeader}>INDEXING & OPTIMIZATION PLAN</ThemedText>
-            <ThemedText type="code" style={styles.sqlCode}>
+          <ThemedView type="backgroundElement" style={tw`p-6 rounded-2xl gap-4`}>
+            <ThemedText type="smallBold" style={tw`text-[#007AFF]`}>INDEXING & OPTIMIZATION PLAN</ThemedText>
+            <ThemedText type="code" style={tw`text-xs leading-5 opacity-95`}>
               {`-- 1. Rider Geo-tracking optimization during shifts\nCREATE INDEX idx_riders_coords\nON riders (latitude, longitude)\nWHERE is_online = TRUE;\n\n-- 2. Order Status queries for live dispatch tracking\nCREATE INDEX idx_orders_status\nON orders (status);\n\n-- 3. Chat Messages pagination index\nCREATE INDEX idx_chat_messages_room\nON chat_messages (room_id, created_at DESC);\n\n-- 4. User identity quick searches\nCREATE INDEX idx_users_phone\nON users (phone_number);`}
             </ThemedText>
           </ThemedView>
         ) : (
-          <View style={styles.tablesList}>
+          <View style={tw`gap-4`}>
             {filteredTables.map((table) => {
               const isExpanded = expandedTable === table.name;
               return (
-                <ThemedView key={table.name} type="backgroundElement" style={styles.tableCard}>
+                <ThemedView key={table.name} type="backgroundElement" style={tw`rounded-2xl overflow-hidden`}>
                   <Pressable
                     onPress={() => setExpandedTable(isExpanded ? null : table.name)}
-                    style={styles.tableCardHeader}>
-                    <View style={styles.tableNameContainer}>
+                    style={tw`flex-row justify-between items-center p-4`}>
+                    <View style={tw`flex-row items-center gap-4`}>
                       <SymbolView
                         name={{ ios: 'tablecells', android: 'grid_on', web: 'table_chart' }}
                         size={18}
                         tintColor="#007AFF"
                       />
-                      <ThemedText type="smallBold" style={styles.tableName}>{table.name}</ThemedText>
+                      <ThemedText type="smallBold" style={tw`font-bold`}>{table.name}</ThemedText>
                     </View>
                     <SymbolView
                       name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
@@ -359,24 +357,24 @@ export default function DatabaseScreen() {
                   </Pressable>
 
                   {isExpanded && (
-                    <View style={styles.tableDetails}>
-                      <ThemedText type="small" themeColor="textSecondary" style={styles.tableDesc}>
+                    <View style={tw`px-4 pb-4 gap-4`}>
+                      <ThemedText type="small" themeColor="textSecondary" style={tw`leading-5`}>
                         {table.description}
                       </ThemedText>
                       
-                      <View style={styles.columnsList}>
-                        <View style={styles.columnHeaderRow}>
-                          <ThemedText type="code" style={[styles.colHeader, { flex: 2 }]}>COLUMN</ThemedText>
-                          <ThemedText type="code" style={[styles.colHeader, { flex: 2 }]}>TYPE</ThemedText>
-                          <ThemedText type="code" style={[styles.colHeader, { flex: 3 }]}>CONSTRAINTS</ThemedText>
+                      <View style={tw`bg-neutral-500/5 rounded-xl p-3 gap-1`}>
+                        <View style={tw`flex-row border-b border-neutral-500/10 pb-2 mb-2`}>
+                          <ThemedText type="code" style={[tw`text-[10px] font-bold`, { flex: 2 }]}>COLUMN</ThemedText>
+                          <ThemedText type="code" style={[tw`text-[10px] font-bold`, { flex: 2 }]}>TYPE</ThemedText>
+                          <ThemedText type="code" style={[tw`text-[10px] font-bold`, { flex: 3 }]}>CONSTRAINTS</ThemedText>
                         </View>
 
                         {table.columns.map((col) => (
-                          <View key={col.name} style={styles.columnDataRow}>
+                          <View key={col.name} style={tw`flex-row items-center py-2 border-b border-neutral-500/5`}>
                             <View style={{ flex: 2 }}>
-                              <ThemedText type="code" style={styles.colNameText}>{col.name}</ThemedText>
+                              <ThemedText type="code" style={tw`font-bold text-xs`}>{col.name}</ThemedText>
                               {col.ref && (
-                                <ThemedText type="code" style={styles.refText}>
+                                <ThemedText type="code" style={tw`text-[9px] text-[#007AFF] mt-0.5`}>
                                   🔑 ref: {col.ref}
                                 </ThemedText>
                               )}
@@ -386,10 +384,10 @@ export default function DatabaseScreen() {
                               {col.type}
                             </ThemedText>
                             
-                            <View style={[styles.badgeContainer, { flex: 3 }]}>
+                            <View style={[tw`flex-row flex-wrap gap-1`, { flex: 3 }]}>
                               {col.constraints.map((c) => (
-                                <View key={c} style={[styles.badge, { backgroundColor: getConstraintBadgeColor(c) }]}>
-                                  <ThemedText type="code" style={styles.badgeText}>{c}</ThemedText>
+                                <View key={c} style={[tw`py-0.5 px-1.5 rounded`, { backgroundColor: getConstraintBadgeColor(c) }]}>
+                                  <ThemedText type="code" style={tw`text-[8px] color-white font-extrabold`}>{c}</ThemedText>
                                 </View>
                               ))}
                             </View>
@@ -403,7 +401,7 @@ export default function DatabaseScreen() {
             })}
 
             {filteredTables.length === 0 && (
-              <ThemedText type="small" themeColor="textSecondary" style={{ textAlign: 'center', marginTop: Spacing.four }}>
+              <ThemedText type="small" themeColor="textSecondary" style={{ textAlign: 'center', marginTop: 16 }}>
                 No database tables found matching your filter.
               </ThemedText>
             )}
@@ -415,149 +413,3 @@ export default function DatabaseScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.four,
-    gap: Spacing.three,
-  },
-  header: {
-    paddingVertical: Spacing.three,
-    gap: Spacing.one,
-  },
-  headerTitle: {
-    fontWeight: '800',
-  },
-  headerSubtitle: {
-    lineHeight: 20,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.three,
-    gap: Spacing.two,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    padding: 0,
-    outlineStyle: 'none',
-  } as any,
-  tabsContainer: {
-    maxHeight: Spacing.five,
-  },
-  tabsRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    paddingBottom: Spacing.one,
-  },
-  tabButton: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 12,
-  },
-  indexesCard: {
-    padding: Spacing.four,
-    borderRadius: Spacing.three,
-    gap: Spacing.three,
-  },
-  sqlHeader: {
-    color: '#007AFF',
-  },
-  sqlCode: {
-    fontSize: 12,
-    lineHeight: 20,
-    opacity: 0.95,
-  },
-  tablesList: {
-    gap: Spacing.two,
-  },
-  tableCard: {
-    borderRadius: Spacing.three,
-    overflow: 'hidden',
-  },
-  tableCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.three,
-  },
-  tableNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  tableName: {
-    fontWeight: '700',
-  },
-  tableDetails: {
-    paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.three,
-    gap: Spacing.three,
-  },
-  tableDesc: {
-    lineHeight: 20,
-  },
-  columnsList: {
-    backgroundColor: 'rgba(128, 128, 128, 0.05)',
-    borderRadius: Spacing.two,
-    padding: Spacing.two,
-    gap: Spacing.one,
-  },
-  columnHeaderRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(128, 128, 128, 0.1)',
-    paddingBottom: Spacing.one,
-    marginBottom: Spacing.one,
-  },
-  colHeader: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  columnDataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(128, 128, 128, 0.05)',
-  },
-  colNameText: {
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  refText: {
-    fontSize: 9,
-    color: '#007AFF',
-    marginTop: 2,
-  },
-  badgeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  badge: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 8,
-    color: '#ffffff',
-    fontWeight: '800',
-  },
-});
-
-// End of file. Database schemas active.

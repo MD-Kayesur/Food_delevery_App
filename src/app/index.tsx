@@ -1,643 +1,565 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
-
-import { ExternalLink } from '@/components/external-link';
+import React, { useState } from 'react';
+import { Platform, Pressable, ScrollView, View, Image, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import tw from 'twrnc';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
-// Define project pillar details
-const ARCHITECTURE_PILLARS = [
-  {
-    id: 'customer',
-    title: 'Customer Portal',
-    icon: { ios: 'cart.fill', android: 'shopping_cart', web: 'shopping_cart' },
-    badge: 'Web & Mobile',
-    description: 'Enables customers to discover restaurants, order meals, track deliveries in real time, and apply promotional discounts.',
-    features: [
-      'Restaurant search & menu browsing',
-      'Shopping cart & coupon checkout engine',
-      'Real-time order statuses & chat with rider',
-      'Dual review system (for food & delivery)',
-    ],
-  },
-  {
-    id: 'rider',
-    title: 'Rider Mobile App',
-    icon: { ios: 'bicycle', android: 'directions_bike', web: 'motorcycle' },
-    badge: 'iOS & Android Native',
-    description: 'Empowers riders with shift planners, automated order dispatches, turn-by-turn route navigation, and integrated customer communication.',
-    features: [
-      'Shift calendar scheduling & booking',
-      'Accept/Reject order dispatch sheet',
-      'Integrated map route tracking & navigation',
-      'Direct customer calling & messaging support',
-    ],
-  },
-  {
-    id: 'admin',
-    title: 'Admin Management Console',
-    icon: { ios: 'square.stack.3d.up.fill', android: 'dashboard', web: 'dashboard' },
-    badge: 'Desktop Web Portal',
-    description: 'Centralized administration for menu configurations, inventory levels, rider verifications, marketing campaigns, and real-time operations.',
-    features: [
-      'Comprehensive CRM & customer transaction log',
-      'Live driver dispatch mapping & verification portal',
-      'Menu item additions & real-time inventory tracking',
-      'Promo campaign manager & notification triggers',
-    ],
-  },
-] as const;
+import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+
+// Coordinates & Zoom Region for San Francisco Delivery Simulation
+const restaurantCoords = { latitude: 37.78825, longitude: -122.4324 };
+const deliveryCoords = { latitude: 37.7925, longitude: -122.4200 };
+const riderCoords = { latitude: 37.7895, longitude: -122.4260 };
+
+const initialRegion = {
+  latitude: 37.7900,
+  longitude: -122.4260,
+  latitudeDelta: 0.015,
+  longitudeDelta: 0.015,
+};
+
+// Premium Dark Mode Map Styling JSON
+const mapStyle = [
+  { "elementType": "geometry", "stylers": [{ "color": "#121212" }] },
+  { "elementType": "labels.text.fill", "stylers": [{ "color": "#747474" }] },
+  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#121212" }] },
+  { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "color": "#333333" }] },
+  { "featureType": "administrative.country", "elementType": "labels.text.fill", "stylers": [{ "color": "#a0a0a0" }] },
+  { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#181818" }] },
+  { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#202020" }] },
+  { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#282828" }] },
+  { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#1b1b1b" }] },
+  { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#FF6C00" }, { "weight": 1.5 }] },
+  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0d0d0d" }] }
+];
 
 export default function HomeScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
-  // Content platform responsive styles
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
+  // App Theme colors
+  const primaryOrange = '#FF6C00';
+
+  // Toggle Switch & Statistics States
+  const [isOnline, setIsOnline] = useState(true);
+  const [todayEarnings, setTodayEarnings] = useState(142.50);
+  const [todayDeliveries, setTodayDeliveries] = useState(12);
+
+  // Active Ongoing Task State
+  const [ongoingTask, setOngoingTask] = useState<{
+    id: string;
+    customer: string;
+    items: string;
+    earnings: string;
+    timeRemaining: string;
+    distanceRemaining: string;
+    active: boolean;
+  } | null>({
+    id: 'TASK #FD-9921',
+    customer: 'Lisa',
+    items: '2 Items • Burger Combo, Coke',
+    earnings: '£8.50',
+    timeRemaining: '10 mins',
+    distanceRemaining: '2.4 km',
+    active: true,
   });
 
-  // Pillar selection state
-  const [selectedPillar, setSelectedPillar] = useState('customer');
+  // Upcoming Request State
+  const [upcomingRequest, setUpcomingRequest] = useState<{
+    id: string;
+    category: string;
+    earnings: string;
+    deliveryTime: string;
+    orderId: string;
+    pickup: string;
+    delivery: string;
+    active: boolean;
+  } | null>({
+    id: 'TASK #FD-2542',
+    category: 'Steaks',
+    earnings: '£8.50',
+    deliveryTime: 'Delivered on Sunday, May 04, 4:30 PM',
+    orderId: 't7ml-2542-o4kj',
+    pickup: 'Green Apartment 1901 Thornridge Cir. Shiloh, Hawaii 81063',
+    delivery: '1901 Thornridge Cir. Shiloh, Hawaii 81063',
+    active: true,
+  });
 
-  // Simulator State
-  const [isPeak, setIsPeak] = useState(false);
-  const [ridersCount, setRidersCount] = useState(12);
-  const [ordersCount, setOrdersCount] = useState(8);
-  const [deliveredTotal, setDeliveredTotal] = useState(142);
-  
-  // Real-time Delivery Simulation
-  const [simState, setSimState] = useState<'idle' | 'placed' | 'cooking' | 'dispatched' | 'delivered'>('idle');
-  const [simProgress, setSimProgress] = useState(0);
+  // Recent History State
+  const [recentHistory, setRecentHistory] = useState([
+    { id: 'TASK #FD-9915', orderNo: 'Order #23910', earnings: '£8.50' },
+    { id: 'TASK #FD-9915', orderNo: 'Order #23910', earnings: '£8.50' },
+    { id: 'TASK #FD-9915', orderNo: 'Order #23910', earnings: '£8.50' },
+  ]);
 
-  // Handle peak traffic toggle
-  const togglePeakTraffic = () => {
-    setIsPeak((prev) => {
-      const next = !prev;
-      if (next) {
-        setRidersCount(19);
-        setOrdersCount(34);
-      } else {
-        setRidersCount(12);
-        setOrdersCount(8);
-      }
-      return next;
-    });
-  };
-
-  // Run the delivery simulation interval
-  useEffect(() => {
-    let interval: any;
-    if (simState !== 'idle' && simState !== 'delivered') {
-      interval = setInterval(() => {
-        setSimProgress((prev) => {
-          if (prev >= 100) {
-            setSimState((curr) => {
-              if (curr === 'placed') return 'cooking';
-              if (curr === 'cooking') return 'dispatched';
-              if (curr === 'dispatched') {
-                setDeliveredTotal((d) => d + 1);
-                setOrdersCount((o) => Math.max(0, o - 1));
-                return 'delivered';
-              }
-              return 'idle';
-            });
-            return 0;
-          }
-          return prev + 25;
-        });
-      }, 600);
-    }
-    return () => clearInterval(interval);
-  }, [simState]);
-
-  // Start new simulation
-  const startSimulation = () => {
-    if (simState === 'idle' || simState === 'delivered') {
-      setSimState('placed');
-      setSimProgress(0);
-      setOrdersCount((o) => o + 1);
+  // Handle Complete Task
+  const handleCompleteTask = () => {
+    if (ongoingTask) {
+      // 1. Add to recent history
+      setRecentHistory((prev) => [
+        {
+          id: ongoingTask.id,
+          orderNo: `Order #${Math.floor(10000 + Math.random() * 90000)}`,
+          earnings: ongoingTask.earnings,
+        },
+        ...prev,
+      ]);
+      // 2. Increment earnings and delivery count
+      setTodayEarnings((prev) => prev + parseFloat(ongoingTask.earnings.replace('£', '')));
+      setTodayDeliveries((prev) => prev + 1);
+      // 3. Clear ongoing task
+      setOngoingTask(null);
     }
   };
 
-  // Progress Bar styling helper
-  const getProgressWidth = () => `${simProgress}%`;
+  // Handle Accept Task
+  const handleAcceptTask = () => {
+    if (upcomingRequest) {
+      setOngoingTask({
+        id: upcomingRequest.id,
+        customer: 'John Doe',
+        items: `1 Item • Premium ${upcomingRequest.category}`,
+        earnings: upcomingRequest.earnings,
+        timeRemaining: '15 mins',
+        distanceRemaining: '3.1 km',
+        active: true,
+      });
+      setUpcomingRequest(null);
+    }
+  };
+
+  // Handle Decline Task
+  const handleDeclineTask = () => {
+    setUpcomingRequest(null);
+  };
 
   return (
     <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        
-        {/* Hero Banner Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroIconWrapper}>
+      style={tw`flex-1 bg-black`}
+      contentContainerStyle={[
+        tw`pb-28 px-4`,
+        { paddingTop: Math.max(insets.top, 16) }
+      ]}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+
+      {/* Header Section */}
+      <View style={tw`flex-row items-center justify-between py-4`}>
+        <View style={tw`flex-row items-center gap-3`}>
+          <Image
+            source={require('@/assets/Frame 2147228939.png')}
+            style={tw`w-12 h-12 rounded-full border border-neutral-800`}
+          />
+          <View>
+            <ThemedText style={tw`text-white text-lg font-bold`}>Alex Rider</ThemedText>
+            <View style={tw`flex-row items-center gap-1 mt-0.5`}>
+              <SymbolView
+                name={{ ios: 'mappin.and.ellipse', android: 'location_on', web: 'location_on' }}
+                size={12}
+                tintColor={primaryOrange}
+              />
+              <ThemedText style={tw`text-neutral-400 text-xs`}>Downtown</ThemedText>
+            </View>
+          </View>
+        </View>
+
+        <View style={tw`flex-row items-center gap-2.5`}>
+          {/* Custom Online Status Toggle */}
+          <Pressable
+            onPress={() => setIsOnline(!isOnline)}
+            style={tw`flex-row items-center gap-2 bg-[#161618] rounded-full px-3 py-1.5 border border-neutral-800`}
+          >
+            <ThemedText style={tw`text-white text-xs font-semibold`}>
+              {isOnline ? 'Online' : 'Offline'}
+            </ThemedText>
+            <View
+              style={[
+                tw`w-8 h-4.5 rounded-full p-0.5 justify-center`,
+                { backgroundColor: isOnline ? primaryOrange : '#444444' },
+              ]}
+            >
+              <View
+                style={[
+                  tw`w-3.5 h-3.5 rounded-full bg-white shadow-sm`,
+                  { transform: [{ translateX: isOnline ? 14 : 0 }] },
+                ]}
+              />
+            </View>
+          </Pressable>
+
+          {/* Bell Icon Button */}
+          <Pressable style={tw`w-10 h-10 rounded-full bg-[#161618] items-center justify-center border border-neutral-800`}>
             <SymbolView
-              name={{ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }}
-              size={36}
+              name={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }}
+              size={18}
               tintColor="#ffffff"
             />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Stats Container (Today's Earnings / Deliveries) */}
+      <View style={tw`flex-row justify-between bg-[#121212] rounded-2xl p-4 mt-2 mb-6 border border-neutral-900`}>
+        <View style={tw`flex-row items-center gap-3`}>
+          <View style={tw`w-9 h-9 rounded-xl bg-neutral-800 items-center justify-center`}>
+            <SymbolView
+              name={{ ios: 'banknote', android: 'account_balance_wallet', web: 'account_balance_wallet' }}
+              size={18}
+              tintColor={primaryOrange}
+            />
           </View>
-          <ThemedText type="title" style={styles.heroTitle}>
-            Food Delivery App
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.heroSubtitle}>
-            Developer Console & Architecture Specifications Hub
-          </ThemedText>
+          <View>
+            <ThemedText style={tw`text-neutral-400 text-xs`}>Today's Earnings</ThemedText>
+            <ThemedText style={tw`text-white text-base font-bold mt-0.5`}>
+              £{todayEarnings.toFixed(2)}
+            </ThemedText>
+          </View>
         </View>
 
-        {/* Real-time System Simulation */}
-        <ThemedView type="backgroundElement" style={styles.simulatorCard}>
-          <View style={styles.simulatorHeader}>
-            <View style={styles.titleWithIndicator}>
-              <View style={[styles.statusDot, { backgroundColor: isPeak ? '#FF9500' : '#34C759' }]} />
-              <ThemedText type="smallBold">SYSTEM HEALTH SIMULATOR</ThemedText>
-            </View>
-            <Pressable
-              onPress={togglePeakTraffic}
-              style={[
-                styles.pillButton,
-                { backgroundColor: isPeak ? '#FF9500' : theme.backgroundSelected }
-              ]}>
-              <ThemedText type="code" style={{ color: isPeak ? '#000000' : theme.text }}>
-                {isPeak ? 'Peak Traffic Active ⚠️' : 'Standard Load'}
-              </ThemedText>
-            </Pressable>
+        <View style={tw`w-[1px] bg-neutral-800 self-stretch`} />
+
+        <View style={tw`flex-row items-center gap-3`}>
+          <View style={tw`w-9 h-9 rounded-xl bg-neutral-800 items-center justify-center`}>
+            <SymbolView
+              name={{ ios: 'paperplane.fill', android: 'navigation', web: 'navigation' }}
+              size={18}
+              tintColor={primaryOrange}
+            />
           </View>
-
-          {/* Quick Metrics Grid */}
-          <View style={styles.metricsGrid}>
-            <View style={styles.metricItem}>
-              <ThemedText type="subtitle" style={styles.metricVal}>
-                {ridersCount}
-              </ThemedText>
-              <ThemedText type="code" themeColor="textSecondary">Active Riders</ThemedText>
-            </View>
-            <View style={styles.metricItem}>
-              <ThemedText type="subtitle" style={styles.metricVal}>
-                {ordersCount}
-              </ThemedText>
-              <ThemedText type="code" themeColor="textSecondary">Pending Orders</ThemedText>
-            </View>
-            <View style={styles.metricItem}>
-              <ThemedText type="subtitle" style={styles.metricVal}>
-                {deliveredTotal}
-              </ThemedText>
-              <ThemedText type="code" themeColor="textSecondary">Delivered Total</ThemedText>
-            </View>
-            <View style={styles.metricItem}>
-              <ThemedText type="subtitle" style={styles.metricVal}>
-                {isPeak ? '26m' : '15m'}
-              </ThemedText>
-              <ThemedText type="code" themeColor="textSecondary">Avg ETA</ThemedText>
-            </View>
+          <View>
+            <ThemedText style={tw`text-neutral-400 text-xs`}>Deliveries</ThemedText>
+            <ThemedText style={tw`text-white text-base font-bold mt-0.5`}>
+              {todayDeliveries}
+            </ThemedText>
           </View>
-
-          
-        </ThemedView>
-
-        {/* Project Pillars Selection Grid */}
-        <ThemedView style={styles.sectionHeader}>
-          <ThemedText type="smallBold" themeColor="textSecondary">SYSTEM ARCHITECTURE</ThemedText>
-        </ThemedView>
-
-        <View style={styles.pillarsGrid}>
-          {ARCHITECTURE_PILLARS.map((pillar) => {
-            const isSelected = selectedPillar === pillar.id;
-            return (
-              <Pressable
-                key={pillar.id}
-                onPress={() => setSelectedPillar(pillar.id)}
-                style={[
-                  styles.pillarButtonCard,
-                  {
-                    backgroundColor: isSelected ? theme.backgroundSelected : theme.backgroundElement,
-                    borderColor: isSelected ? '#007AFF' : 'transparent',
-                    borderWidth: 1.5,
-                  }
-                ]}>
-                <SymbolView
-                  name={pillar.icon}
-                  size={24}
-                  tintColor={isSelected ? '#007AFF' : theme.text}
-                />
-                <ThemedText type="smallBold" style={[styles.pillarButtonTitle, { color: isSelected ? '#007AFF' : theme.text }]}>
-                  {pillar.title}
-                </ThemedText>
-                <ThemedText type="code" themeColor="textSecondary" style={styles.pillarButtonBadge}>
-                  {pillar.badge}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
         </View>
+      </View>
 
-        {/* Active Pillar Details Card */}
-        {ARCHITECTURE_PILLARS.map((pillar) => {
-          if (pillar.id !== selectedPillar) return null;
-          return (
-            <ThemedView key={pillar.id} type="backgroundElement" style={styles.pillarDetailCard}>
-              <ThemedText type="subtitle" style={styles.detailTitle}>{pillar.title}</ThemedText>
-              <ThemedText style={styles.detailDesc} themeColor="textSecondary">{pillar.description}</ThemedText>
-              <View style={styles.detailFeaturesList}>
-                <ThemedText type="smallBold" style={styles.featuresHeading}>Core Capabilities:</ThemedText>
-                {pillar.features.map((feature, idx) => (
-                  <View key={idx} style={styles.featureItem}>
-                    <SymbolView
-                      name={{ ios: 'circle.fill', android: 'fiber_manual_record', web: 'circle' }}
-                      size={6}
-                      tintColor="#007AFF"
-                    />
-                    <ThemedText type="small" style={styles.featureItemText}>{feature}</ThemedText>
-                  </View>
-                ))}
+      {/* Ongoing Task Section */}
+      <View style={tw`mb-6`}>
+        <ThemedText style={tw`text-white text-lg font-bold mb-3`}>Ongoing Task</ThemedText>
+        {ongoingTask ? (
+          <View style={tw`bg-[#121212] rounded-2xl p-4 border border-neutral-900`}>
+            {/* Task Card Header */}
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View style={tw`bg-neutral-800 px-2.5 py-1 rounded-full`}>
+                <ThemedText style={tw`text-[#FF6C00] text-xs font-bold`}>{ongoingTask.id}</ThemedText>
               </View>
-            </ThemedView>
-          );
-        })}
+              <Pressable style={tw`w-8 h-8 rounded-full bg-neutral-800 items-center justify-center`}>
+                <SymbolView
+                  name={{ ios: 'scope', android: 'my_location', web: 'my_location' }}
+                  size={16}
+                  tintColor="#ffffff"
+                />
+              </Pressable>
+            </View>
 
-        {/* Database Schema Explorer */}
-        <ThemedView style={styles.sectionHeader}>
-          <ThemedText type="smallBold" themeColor="textSecondary">DATABASE SCHEMAS (POSTGRESQL)</ThemedText>
-        </ThemedView>
+            {/* Map Frame Card */}
+            <View style={tw`h-[220px] rounded-xl overflow-hidden relative mb-4`}>
+              {Platform.OS === 'web' ? (
+                <>
+                  <Image
+                    source={require('@/assets/Group 14928.png')}
+                    style={tw`w-full h-full`}
+                    resizeMode="cover"
+                  />
 
-        <View style={styles.collapsibleContainer}>
-          <Collapsible title="1. Authentication & User Profiles">
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: users</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\nphone_number: VARCHAR(20) (Unique, Not Null)\nemail: VARCHAR(255) (Unique, Nullable)\npassword_hash: VARCHAR(255)\nrole: VARCHAR(20) ("customer" | "rider" | "staff" | "admin")\nstatus: VARCHAR(20) ("active" | "suspended")`}
+                  {/* Map overlays / Pins */}
+                  <View style={[tw`absolute w-8 h-8 rounded-full bg-[#FF6C00] items-center justify-center border-2 border-white`, { top: 32, left: 48 }]}>
+                    <SymbolView
+                      name={{ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }}
+                      size={14}
+                      tintColor="#ffffff"
+                    />
+                  </View>
+
+                  <View style={[tw`absolute w-8 h-8 rounded-full bg-red-600 items-center justify-center border-2 border-white`, { top: 64, right: 64 }]}>
+                    <SymbolView
+                      name={{ ios: 'house.fill', android: 'home', web: 'home' }}
+                      size={14}
+                      tintColor="#ffffff"
+                    />
+                  </View>
+
+                  {/* Rider Marker */}
+                  <View style={[tw`absolute w-7 h-7 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-lg`, { top: 120, left: 140 }]}>
+                    <View style={tw`w-2.5 h-2.5 rounded-full bg-white`} />
+                  </View>
+                </>
+              ) : (
+                <MapView
+                  style={tw`w-full h-full`}
+                  initialRegion={initialRegion}
+                  customMapStyle={mapStyle}
+                  showsUserLocation={false}
+                  zoomEnabled={true}
+                  mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+                >
+                  <UrlTile
+                    urlTemplate="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+                    maximumZ={19}
+                    flipY={false}
+                    tileSize={256}
+                  />
+                  <Polyline
+                    coordinates={[
+                      restaurantCoords,
+                      { latitude: 37.78825, longitude: -122.4260 },
+                      { latitude: 37.7925, longitude: -122.4260 },
+                      deliveryCoords
+                    ]}
+                    strokeColor="#FF6C00"
+                    strokeWidth={4}
+                  />
+                  <Marker coordinate={restaurantCoords}>
+                    <View style={tw`w-8 h-8 rounded-full bg-[#FF6C00] items-center justify-center border-2 border-white`}>
+                      <SymbolView
+                        name={{ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }}
+                        size={14}
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                  </Marker>
+                  <Marker coordinate={deliveryCoords}>
+                    <View style={tw`w-8 h-8 rounded-full bg-red-600 items-center justify-center border-2 border-white`}>
+                      <SymbolView
+                        name={{ ios: 'house.fill', android: 'home', web: 'home' }}
+                        size={14}
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                  </Marker>
+                  <Marker coordinate={riderCoords}>
+                    <View style={tw`w-7 h-7 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-lg`}>
+                      <View style={tw`w-2.5 h-2.5 rounded-full bg-white`} />
+                    </View>
+                  </Marker>
+                </MapView>
+              )}
+
+              {/* Zoom Controls */}
+              <View style={tw`absolute bottom-3 right-3 bg-neutral-900/80 rounded-lg p-1.5 gap-2 border border-neutral-800`}>
+                <Pressable style={tw`w-6 h-6 items-center justify-center`}>
+                  <ThemedText style={tw`text-white font-bold text-base`}>+</ThemedText>
+                </Pressable>
+                <View style={tw`h-[1px] bg-neutral-850`} />
+                <Pressable style={tw`w-6 h-6 items-center justify-center`}>
+                  <ThemedText style={tw`text-white font-bold text-base`}>-</ThemedText>
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Customer Details Block */}
+            <View style={tw`flex-row items-center justify-between pb-4 border-b border-neutral-850/60`}>
+              <View style={tw`flex-row items-center gap-3`}>
+                <Image
+                  source={require('@/assets/Frame 2147228939 (1).png')}
+                  style={tw`w-11 h-11 rounded-full border border-neutral-800`}
+                />
+                <View>
+                  <ThemedText style={tw`text-white font-bold text-base`}>{ongoingTask.customer}</ThemedText>
+                  <ThemedText style={tw`text-neutral-400 text-xs mt-0.5`}>{ongoingTask.items}</ThemedText>
+                </View>
+              </View>
+              <View style={tw`items-end`}>
+                <ThemedText style={tw`text-[#FF6C00] font-bold text-base`}>{ongoingTask.earnings}</ThemedText>
+                <ThemedText style={tw`text-neutral-400 text-[10px] mt-0.5`}>Earnings</ThemedText>
+              </View>
+            </View>
+
+            {/* Time / Distance Remaining & Call/Chat Actions */}
+            <View style={tw`flex-row items-center justify-between pt-4`}>
+              <View style={tw`flex-row gap-5`}>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <SymbolView
+                    name={{ ios: 'clock.fill', android: 'schedule', web: 'schedule' }}
+                    size={14}
+                    tintColor={primaryOrange}
+                  />
+                  <View>
+                    <ThemedText style={tw`text-white text-xs font-bold`}>{ongoingTask.timeRemaining}</ThemedText>
+                    <ThemedText style={tw`text-neutral-500 text-[10px]`}>Remaining</ThemedText>
+                  </View>
+                </View>
+                <View style={tw`flex-row items-center gap-1.5`}>
+                  <SymbolView
+                    name={{ ios: 'mappin', android: 'location_on', web: 'location_on' }}
+                    size={14}
+                    tintColor={primaryOrange}
+                  />
+                  <View>
+                    <ThemedText style={tw`text-white text-xs font-bold`}>{ongoingTask.distanceRemaining}</ThemedText>
+                    <ThemedText style={tw`text-neutral-500 text-[10px]`}>Remaining</ThemedText>
+                  </View>
+                </View>
+              </View>
+
+              <View style={tw`flex-row gap-2`}>
+                <Pressable style={tw`w-10 h-10 rounded-full bg-green-600 items-center justify-center shadow-md`}>
+                  <SymbolView
+                    name={{ ios: 'phone.fill', android: 'phone', web: 'phone' }}
+                    size={16}
+                    tintColor="#ffffff"
+                  />
+                </Pressable>
+                <Pressable style={tw`w-10 h-10 rounded-full bg-white items-center justify-center shadow-md`}>
+                  <SymbolView
+                    name={{ ios: 'message.fill', android: 'chat', web: 'chat' }}
+                    size={16}
+                    tintColor="#121212"
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Complete Task Trigger */}
+            <Pressable
+              onPress={handleCompleteTask}
+              style={({ pressed }) => [
+                tw`w-full bg-[#FF6C00] py-3.5 rounded-full items-center justify-center mt-5 shadow-lg`,
+                pressed && tw`opacity-90 scale-[0.99]`,
+              ]}
+            >
+              <ThemedText style={tw`text-white font-bold text-base`}>Complete Task</ThemedText>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={tw`bg-[#121212] rounded-2xl p-6 border border-neutral-900 items-center justify-center`}>
+            <SymbolView
+              name={{ ios: 'checkmark.seal.fill', android: 'verified', web: 'verified' }}
+              size={36}
+              tintColor={primaryOrange}
+            />
+            <ThemedText style={tw`text-white font-bold text-base mt-2.5`}>All Tasks Completed!</ThemedText>
+            <ThemedText style={tw`text-neutral-400 text-xs mt-1 text-center`}>
+              Accept a task from upcoming requests below to start delivering.
             </ThemedText>
+          </View>
+        )}
+      </View>
 
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: user_profiles</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Matches users.id - 1-to-1 relationship)\nfirst_name: VARCHAR(50) (Not Null)\nlast_name: VARCHAR(50) (Not Null)\navatar_url: TEXT (Nullable)`}
-            </ThemedText>
-          </Collapsible>
-
-          <Collapsible title="2. Riders & Shift Management">
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: riders</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key, Links to users.id)\nvehicle_type: VARCHAR(20) ("bicycle" | "motorcycle" | "car")\nplate_number: VARCHAR(20) (Nullable)\nis_online: BOOLEAN (Default FALSE)\nlatitude: DOUBLE PRECISION\nlongitude: DOUBLE PRECISION\nrating: NUMERIC(3,2) (Default 5.00)\nverification_status: VARCHAR(20) ("pending" | "verified")\ndocuments: JSONB (License, credentials)`}
-            </ThemedText>
-
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: shifts</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\nrider_id: UUID (Foreign Key riders.id)\nstart_time: TIMESTAMP\nend_time: TIMESTAMP\nstatus: VARCHAR(20) ("scheduled" | "checked_in" | "completed")\nactual_start_time: TIMESTAMP\nactual_end_time: TIMESTAMP\nestimated_earnings: NUMERIC(10,2)`}
-            </ThemedText>
-          </Collapsible>
-
-          <Collapsible title="3. Restaurants, Menus & Inventory">
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: restaurants</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\nname: VARCHAR(100) (Not Null)\nlogo_url: TEXT\naddress: TEXT\nlatitude: DOUBLE PRECISION\nlongitude: DOUBLE PRECISION\nis_active: BOOLEAN`}
-            </ThemedText>
-
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: categories</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\nrestaurant_id: UUID (Foreign Key restaurants.id)\nname: VARCHAR(50)\ndisplay_order: INT`}
-            </ThemedText>
-
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: menu_items</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\ncategory_id: UUID (Foreign Key categories.id)\nname: VARCHAR(100)\ndescription: TEXT\nprice: NUMERIC(10,2)\nimage_url: TEXT\nis_available: BOOLEAN\nstock_count: INT`}
-            </ThemedText>
-          </Collapsible>
-
-          <Collapsible title="4. Orders & Active Delivery Flows">
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: orders</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\ncustomer_id: UUID (Foreign Key users.id)\nrestaurant_id: UUID (Foreign Key restaurants.id)\nrider_id: UUID (Foreign Key riders.id, Nullable)\nstatus: VARCHAR(30) ("pending" | "preparing" | "ready_for_pickup" | "picked_up" | "delivered")\ndelivery_address: TEXT\nsubtotal: NUMERIC(10,2)\ndelivery_fee: NUMERIC(10,2)\ndiscount: NUMERIC(10,2)\ntotal_amount: NUMERIC(10,2)\npayment_method: VARCHAR(20)\npayment_status: VARCHAR(20)`}
-            </ThemedText>
-
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: order_items</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\norder_id: UUID (Foreign Key orders.id)\nmenu_item_id: UUID (Foreign Key menu_items.id)\nquantity: INT\nprice: NUMERIC(10,2)\nnotes: TEXT`}
-            </ThemedText>
-          </Collapsible>
-
-          <Collapsible title="5. Live Support, Chats & Reviews">
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: chat_rooms & chat_messages</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`chat_rooms: id (UUID), order_id (UUID), is_active (BOOLEAN)\nchat_messages: id (UUID), room_id (UUID), sender_id (UUID), message_text (TEXT), image_url (TEXT)`}
-            </ThemedText>
-
-            <View style={styles.schemaDivider} />
-
-            <ThemedText type="smallBold" style={styles.schemaTableTitle}>Table: reviews</ThemedText>
-            <ThemedText type="code" style={styles.schemaCode}>
-              {`id: UUID (Primary Key)\norder_id: UUID (Foreign Key orders.id)\nreviewer_id: UUID (Foreign Key users.id)\nreview_type: VARCHAR(20) ("food" | "delivery")\nrating: INT (1 to 5 stars)\ncomment: TEXT`}
-            </ThemedText>
-          </Collapsible>
+      {/* Upcoming Requests Section */}
+      <View style={tw`mb-6`}>
+        <View style={tw`flex-row justify-between items-center mb-3`}>
+          <View style={tw`flex-row items-center gap-2`}>
+            <ThemedText style={tw`text-white text-lg font-bold`}>Upcoming Requests</ThemedText>
+            {upcomingRequest && (
+              <View style={tw`bg-[#FF6C00] w-5 h-5 rounded-full items-center justify-center`}>
+                <ThemedText style={tw`text-white text-xs font-bold`}>1</ThemedText>
+              </View>
+            )}
+          </View>
+          <Pressable>
+            <ThemedText style={tw`text-[#FF6C00] text-xs font-bold`}>View All &gt;</ThemedText>
+          </Pressable>
         </View>
 
-        {/* Resources & Figma Links */}
-        <ThemedView style={styles.sectionHeader}>
-          <ThemedText type="smallBold" themeColor="textSecondary">PROJECT RESOURCES</ThemedText>
-        </ThemedView>
+        {upcomingRequest ? (
+          <View style={tw`bg-[#121212] rounded-2xl p-4 border border-neutral-900`}>
+            <View style={tw`flex-row gap-4`}>
+              <Image
+                source={require('@/assets/food1.png')}
+                style={tw`w-20 h-20 rounded-xl`}
+                resizeMode="cover"
+              />
+              <View style={tw`flex-1`}>
+                <View style={tw`flex-row justify-between items-start`}>
+                  <View style={tw`border border-green-600/40 bg-green-950/20 px-2 py-0.5 rounded-md`}>
+                    <ThemedText style={tw`text-green-500 text-[10px] font-bold`}>{upcomingRequest.category}</ThemedText>
+                  </View>
+                  <ThemedText style={tw`text-white font-bold text-base`}>{upcomingRequest.earnings}</ThemedText>
+                </View>
 
-        <View style={styles.linksContainer}>
-          <ExternalLink href="https://www.figma.com/design/iig3b1mWILbZRPyBOtaQBU/alipacno-%7C%7C-Custom-UI-U-design-%7C%7C-Bits-wise-%7C%7C-FO11BBB456F87--Copy-?node-id=1400-12221&m=dev" asChild>
-            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}>
-              <ThemedView type="backgroundElement" style={styles.linkButtonInner}>
-                <SymbolView
-                  name={{ ios: 'paintbrush.fill', android: 'palette', web: 'palette' }}
-                  size={16}
-                  tintColor={theme.text}
-                />
-                <ThemedText type="smallBold" style={styles.linkText}>Figma Design Spec (Dev Mode)</ThemedText>
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
+                <ThemedText style={tw`text-[#FF6C00] text-xs mt-2 font-semibold`}>
+                  {upcomingRequest.deliveryTime}
+                </ThemedText>
+                <ThemedText style={tw`text-neutral-500 text-[10px] mt-0.5`}>
+                  Order #{upcomingRequest.orderId}
+                </ThemedText>
+              </View>
+            </View>
 
-          <ExternalLink href="https://github.com/MD-Kayesur/Food_delevery_App" asChild>
-            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}>
-              <ThemedView type="backgroundElement" style={styles.linkButtonInner}>
-                <SymbolView
-                  name={{ ios: 'folder.fill', android: 'folder', web: 'folder' }}
-                  size={16}
-                  tintColor={theme.text}
-                />
-                <ThemedText type="smallBold" style={styles.linkText}>GitHub Repository</ThemedText>
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
+            {/* Locations */}
+            <View style={tw`mt-4 pt-4 border-t border-neutral-850/60 gap-3`}>
+              <View style={tw`flex-row items-start gap-2.5`}>
+                <View style={tw`w-2 h-2 rounded-full bg-[#FF6C00] mt-1.5`} />
+                <View style={tw`flex-1`}>
+                  <ThemedText style={tw`text-neutral-400 text-[10px] font-semibold`}>Pickup Location</ThemedText>
+                  <ThemedText style={tw`text-white text-xs mt-0.5`}>{upcomingRequest.pickup}</ThemedText>
+                </View>
+              </View>
+              <View style={tw`flex-row items-start gap-2.5`}>
+                <View style={tw`w-2 h-2 rounded-full bg-red-600 mt-1.5`} />
+                <View style={tw`flex-1`}>
+                  <ThemedText style={tw`text-neutral-400 text-[10px] font-semibold`}>Delivery Location</ThemedText>
+                  <ThemedText style={tw`text-white text-xs mt-0.5`}>{upcomingRequest.delivery}</ThemedText>
+                </View>
+              </View>
+            </View>
+
+            {/* Accept / Decline Action Buttons */}
+            <View style={tw`flex-row gap-3 mt-5`}>
+              <Pressable
+                onPress={handleAcceptTask}
+                style={({ pressed }) => [
+                  tw`flex-1 bg-[#FF6C00] py-3 rounded-full items-center justify-center shadow-lg`,
+                  pressed && tw`opacity-90`,
+                ]}
+              >
+                <ThemedText style={tw`text-white font-bold text-sm`}>Accept Task</ThemedText>
+              </Pressable>
+              <Pressable
+                onPress={handleDeclineTask}
+                style={({ pressed }) => [
+                  tw`flex-1 bg-[#161618] py-3 rounded-full items-center justify-center border border-neutral-800`,
+                  pressed && tw`opacity-80`,
+                ]}
+              >
+                <ThemedText style={tw`text-white font-bold text-sm`}>Decline</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View style={tw`bg-[#121212] rounded-2xl p-5 border border-neutral-900 items-center justify-center`}>
+            <ThemedText style={tw`text-neutral-500 text-xs`}>No upcoming requests available.</ThemedText>
+          </View>
+        )}
+      </View>
+
+      {/* Recent History Section */}
+      <View>
+        <View style={tw`flex-row justify-between items-center mb-3`}>
+          <ThemedText style={tw`text-white text-lg font-bold`}>Recent History</ThemedText>
+          <Pressable>
+            <ThemedText style={tw`text-[#FF6C00] text-xs font-bold`}>View All &gt;</ThemedText>
+          </Pressable>
         </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
+        <View style={tw`gap-2.5`}>
+          {recentHistory.map((item, idx) => (
+            <View
+              key={idx}
+              style={tw`flex-row items-center justify-between bg-[#121212] rounded-xl p-3 border border-neutral-900`}
+            >
+              <View style={tw`flex-row items-center gap-3`}>
+                <View style={tw`w-7 h-7 rounded-full bg-neutral-800 items-center justify-center`}>
+                  <SymbolView
+                    name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                    size={14}
+                    tintColor={primaryOrange}
+                  />
+                </View>
+                <View>
+                  <ThemedText style={tw`text-white text-sm font-bold`}>{item.id}</ThemedText>
+                  <ThemedText style={tw`text-neutral-500 text-[10px] mt-0.5`}>{item.orderNo}</ThemedText>
+                </View>
+              </View>
+              <ThemedText style={tw`text-white font-bold text-sm`}>{item.earnings}</ThemedText>
+            </View>
+          ))}
+        </View>
+      </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.four,
-    gap: Spacing.three,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.two,
-  },
-  heroIconWrapper: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-    marginBottom: Spacing.one,
-  },
-  heroTitle: {
-    fontWeight: '800',
-    fontSize: 40,
-    lineHeight: 48,
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    textAlign: 'center',
-    maxWidth: 500,
-  },
-  simulatorCard: {
-    padding: Spacing.four,
-    borderRadius: Spacing.three,
-    gap: Spacing.three,
-    borderWidth: 1.5,
-    borderColor: 'rgba(128, 128, 128, 0.1)',
-  },
-  simulatorHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  titleWithIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  pillButton: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 12,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-    justifyContent: 'space-between',
-  },
-  metricItem: {
-    flex: 1,
-    minWidth: '45%',
-    padding: Spacing.three,
-    backgroundColor: 'rgba(128, 128, 128, 0.05)',
-    borderRadius: Spacing.two,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  metricVal: {
-    fontWeight: '800',
-    fontSize: 28,
-  },
-  simulationControls: {
-    marginTop: Spacing.two,
-  },
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.two,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-  },
-  simulationActiveContainer: {
-    gap: Spacing.two,
-    padding: Spacing.two,
-  },
-  simulationStatusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  simulationStatusText: {
-    fontWeight: '600',
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  deliveryToast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    padding: Spacing.three,
-    borderRadius: Spacing.two,
-    marginTop: Spacing.two,
-  },
-  toastText: {
-    fontWeight: '500',
-  },
-  sectionHeader: {
-    marginTop: Spacing.four,
-    paddingHorizontal: Spacing.two,
-  },
-  pillarsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  pillarButtonCard: {
-    flex: 1,
-    minWidth: 120,
-    padding: Spacing.three,
-    borderRadius: Spacing.two,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-  },
-  pillarButtonTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  pillarButtonBadge: {
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  pillarDetailCard: {
-    padding: Spacing.four,
-    borderRadius: Spacing.three,
-    gap: Spacing.two,
-  },
-  detailTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  detailDesc: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  detailFeaturesList: {
-    marginTop: Spacing.two,
-    gap: Spacing.two,
-  },
-  featuresHeading: {
-    fontSize: 14,
-    marginBottom: Spacing.one,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    paddingLeft: Spacing.one,
-  },
-  featureItemText: {
-    fontSize: 14,
-  },
-  collapsibleContainer: {
-    gap: Spacing.two,
-  },
-  schemaTableTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: Spacing.one,
-    color: '#007AFF',
-  },
-  schemaCode: {
-    fontSize: 11,
-    lineHeight: 18,
-    opacity: 0.9,
-  },
-  schemaDivider: {
-    height: 1,
-    backgroundColor: 'rgba(128, 128, 128, 0.1)',
-    marginVertical: Spacing.three,
-  },
-  linksContainer: {
-    gap: Spacing.two,
-  },
-  linkButton: {
-    width: '100%',
-  },
-  linkButtonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
-  },
-  linkText: {
-    fontSize: 14,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
