@@ -255,9 +255,8 @@ export default function HomeScreen() {
               </Pressable>
             </View>
 
-            {/* Map Frame Card */}
             <View style={tw`h-[220px] rounded-xl overflow-hidden relative mb-4`}>
-              {Platform.OS === 'web' ? (
+              {Platform.OS === 'web' || Platform.OS === 'android' ? (
                 <>
                   <Image
                     source={require('@/assets/Group 14928.png')}
@@ -294,7 +293,7 @@ export default function HomeScreen() {
                   customMapStyle={mapStyle}
                   showsUserLocation={false}
                   zoomEnabled={true}
-                  mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+                  mapType="standard"
                 >
                   <UrlTile
                     urlTemplate="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
