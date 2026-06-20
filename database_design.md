@@ -187,7 +187,7 @@ Holds non-security-related profile details.
 | `avatar_url` | `TEXT` | Nullable | URL to profile picture stored in S3/Cloudinary |
 | `created_at` | `TIMESTAMP` | Not Null, Default `NOW()` | Profile creation date |
 | `updated_at` | `TIMESTAMP` | Not Null, Default `NOW()` | Profile last modification date |
-
+table_1
 ---
 
 ### 2. Riders & Shift Management
@@ -206,6 +206,17 @@ Extends the user account with rider-specific metadata and vehicle credentials.
 | `rating` | `NUMERIC(3,2)` | Default `5.00` | Average rider rating (0.00 to 5.00) |
 | `verification_status`| `VARCHAR(20)` | Default `'pending'` | `pending`, `verified`, `rejected` |
 | `documents` | `JSONB` | Nullable | Holds URLs to driving license, national ID, etc. |
+
+|
+|
+|
+|
+|
+done above
+|
+|
+|
+|
 
 #### `shifts`
 Tracks planned shifts and actual work logs for payment processing.
