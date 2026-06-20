@@ -6,7 +6,7 @@ import tw from 'twrnc';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
 
 // Coordinates & Zoom Region for San Francisco Delivery Simulation
 const restaurantCoords = { latitude: 37.78825, longitude: -122.4324 };
@@ -294,7 +294,14 @@ export default function HomeScreen() {
                   customMapStyle={mapStyle}
                   showsUserLocation={false}
                   zoomEnabled={true}
+                  mapType={Platform.OS === 'android' ? 'none' : 'standard'}
                 >
+                  <UrlTile
+                    urlTemplate="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+                    maximumZ={19}
+                    flipY={false}
+                    tileSize={256}
+                  />
                   <Polyline
                     coordinates={[
                       restaurantCoords,
