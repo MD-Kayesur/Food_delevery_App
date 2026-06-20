@@ -229,7 +229,7 @@ export default function HomeScreen() {
             {/* Map Frame Card */}
             <View style={tw`h-[220px] rounded-xl overflow-hidden relative mb-4`}>
               <Image
-                source={require('@/assets/Frame 263.png')}
+                source={require('@/assets/Group 14928.png')}
                 style={tw`w-full h-full`}
                 resizeMode="cover"
               />
