@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StatusBar } from 'react-native';
+import { View, Pressable, Platform, Dimensions, StatusBar } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,10 @@ import Animated, {
 import { Image } from 'expo-image';
 import tw from 'twrnc';
 import { ThemedText } from './themed-text';
+
+interface SplashOnboardingProps {
+  onFinish: () => void;
+}
 
 export interface SlideData {
   title: string;
@@ -34,10 +38,6 @@ export const SLIDES: SlideData[] = [
     image: require('@/assets/7709396_3724830 1.png'),
   },
 ];
-
-interface SplashOnboardingProps {
-  onFinish: () => void;
-}
 
 export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
   const [phase, setPhase] = useState<'splash' | 'onboarding'>('splash');
@@ -72,6 +72,26 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
       })
     );
   }, []);
+
+  const handleNext = () => {
+    if (currentSlide < SLIDES.length - 1) {
+      // Animate slide transition (fade out then fade in)
+      slideOpacity.value = withSequence(
+        withTiming(0, { duration: 200 }),
+        withTiming(1, { duration: 300 })
+      );
+      setTimeout(() => {
+        setCurrentSlide((prev) => prev + 1);
+      }, 200);
+    } else {
+      // Onboarding finished, fade out entire onboarding screen
+      splashOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
+        if (finished) {
+          runOnJS(onFinish)();
+        }
+      });
+    }
+  };
 
   const animatedLogoStyle = useAnimatedStyle(() => ({
     transform: [{ scale: logoScale.value }],
@@ -160,6 +180,21 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
           {slide.subtitle}
         </ThemedText>
       </Animated.View>
+
+      {/* Action Button */}
+      <View style={tw`px-4 pb-4`}>
+        <Pressable
+          onPress={handleNext}
+          style={({ pressed }) => [
+            tw`w-full bg-[#FF6C00] py-4 rounded-[28px] items-center justify-center shadow-lg`,
+            pressed && tw`opacity-90 scale-[0.98]`,
+          ]}
+        >
+          <ThemedText style={tw`text-white font-bold text-lg`}>
+            {currentSlide === SLIDES.length - 1 ? 'Continue' : 'Next'}
+          </ThemedText>
+        </Pressable>
+      </View>
     </Animated.View>
   );
 }
