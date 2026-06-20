@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import tw from 'twrnc';
+import { ThemedText } from './themed-text';
 
 export interface SlideData {
   title: string;
@@ -40,11 +41,15 @@ interface SplashOnboardingProps {
 
 export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
   const [phase, setPhase] = useState<'splash' | 'onboarding'>('splash');
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Splash animation shared values
   const logoScale = useSharedValue(0.6);
   const logoOpacity = useSharedValue(0);
   const splashOpacity = useSharedValue(1);
+
+  // Onboarding transition shared values
+  const slideOpacity = useSharedValue(1);
 
   useEffect(() => {
     // Start splash animation sequentially:
@@ -77,6 +82,10 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
     opacity: splashOpacity.value,
   }));
 
+  const animatedSlideStyle = useAnimatedStyle(() => ({
+    opacity: slideOpacity.value,
+  }));
+
   if (phase === 'splash') {
     return (
       <Animated.View
@@ -97,5 +106,60 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
     );
   }
 
-  return null;
+  const slide = SLIDES[currentSlide];
+
+  return (
+    <Animated.View
+      style={[
+        tw`absolute inset-0 bg-black justify-between py-12 px-6 z-50`,
+        animatedSplashStyle,
+      ]}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      {/* Top Spacing */}
+      <View style={tw`h-4`} />
+
+      {/* Slide Content */}
+      <Animated.View style={[tw`items-center justify-center flex-1`, animatedSlideStyle]}>
+        <Image
+          source={slide.image}
+          style={[tw`w-[300px] h-[300px] mb-8`, { resizeMode: 'contain' } as any]}
+          contentFit="contain"
+        />
+
+        {/* Pagination Dots */}
+        <View style={tw`flex-row gap-2 mb-8`}>
+          {SLIDES.map((_, idx) => (
+            <View
+              key={idx}
+              style={[
+                tw`h-2 rounded-full`,
+                {
+                  width: idx === currentSlide ? 18 : 8,
+                  backgroundColor: idx === currentSlide ? '#FF6C00' : '#444444',
+                },
+              ]}
+            />
+          ))}
+        </View>
+
+        {/* Slide Title */}
+        <ThemedText
+          type="title"
+          style={tw`text-white font-extrabold text-2xl text-center px-4 leading-8 mb-4`}
+        >
+          {slide.title}
+        </ThemedText>
+
+        {/* Slide Subtitle */}
+        <ThemedText
+          type="small"
+          style={tw`text-neutral-400 text-center text-sm font-medium px-6 leading-5`}
+        >
+          {slide.subtitle}
+        </ThemedText>
+      </Animated.View>
+    </Animated.View>
+  );
 }
