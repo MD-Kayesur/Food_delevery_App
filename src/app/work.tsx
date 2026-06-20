@@ -1,7 +1,8 @@
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import tw from 'twrnc';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -21,7 +22,7 @@ interface Phase {
   tasks: Task[];
 }
 
-export default function WorkScreen() {
+export default function TasksScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
     ...safeAreaInsets,
@@ -116,47 +117,47 @@ export default function WorkScreen() {
 
   return (
     <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
+      style={[tw`flex-1`, { backgroundColor: theme.background }]}
       contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
+      contentContainerStyle={[tw`flex-row justify-center`, contentPlatformStyle]}>
+      <ThemedView style={tw`max-w-[800px] flex-grow px-6 py-6 gap-4`}>
         
         {/* Header Section */}
-        <View style={styles.header}>
-          <ThemedText type="subtitle" style={styles.headerTitle}>Task Board</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.headerSubtitle}>
+        <View style={tw`py-4 gap-1`}>
+          <ThemedText type="subtitle" style={tw`font-bold`}>Task Board</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={tw`leading-5`}>
             Track the implementation roadmap for the Food Delivery System
           </ThemedText>
         </View>
 
         {/* Progress Card */}
-        <ThemedView type="backgroundElement" style={styles.progressCard}>
-          <View style={styles.progressHeader}>
+        <ThemedView type="backgroundElement" style={tw`p-6 rounded-2xl gap-2`}>
+          <View style={tw`flex-row justify-between items-center`}>
             <ThemedText type="smallBold">ROADMAP PROGRESS</ThemedText>
             <ThemedText type="smallBold" style={{ color: '#007AFF' }}>{progressPercent}% Done</ThemedText>
           </View>
-          <View style={[styles.progressTrack, { backgroundColor: theme.backgroundSelected }]}>
-            <View style={[styles.progressFill, { width: `${progressPercent}%`, backgroundColor: '#007AFF' }]} />
+          <View style={[tw`h-2 rounded-full overflow-hidden mt-1`, { backgroundColor: theme.backgroundSelected }]}>
+            <View style={[tw`h-full rounded-full`, { width: `${progressPercent}%`, backgroundColor: '#007AFF' }]} />
           </View>
-          <ThemedText type="code" themeColor="textSecondary" style={styles.progressMeta}>
+          <ThemedText type="code" themeColor="textSecondary" style={tw`mt-1`}>
             {completedTasks} of {totalTasks} tasks completed
           </ThemedText>
         </ThemedView>
 
         {/* Tasks List */}
-        <View style={styles.phasesContainer}>
+        <View style={tw`gap-6`}>
           {phases.map((phase, phaseIdx) => (
-            <View key={phaseIdx} style={styles.phaseWrapper}>
-              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.phaseTitle}>
+            <View key={phaseIdx} style={tw`gap-2`}>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={tw`text-[12px] font-extrabold px-1`}>
                 {phase.title.toUpperCase()}
               </ThemedText>
               
-              <ThemedView type="backgroundElement" style={styles.tasksBox}>
+              <ThemedView type="backgroundElement" style={tw`rounded-2xl p-2 gap-1`}>
                 {phase.tasks.map((task) => (
                   <Pressable
                     key={task.id}
                     onPress={() => toggleTask(task.id)}
-                    style={({ pressed }) => [styles.taskRow, pressed && styles.pressed]}>
+                    style={({ pressed }) => [tw`flex-row items-center gap-4 p-4 rounded-lg`, pressed && tw`opacity-70`]}>
                     <SymbolView
                       name={
                         task.completed
@@ -169,7 +170,7 @@ export default function WorkScreen() {
                     <ThemedText
                       type="small"
                       style={[
-                        styles.taskText,
+                        tw`flex-shrink-1 text-sm leading-5`,
                         task.completed && { textDecorationLine: 'line-through', opacity: 0.6 }
                       ]}>
                       {task.text}
@@ -186,86 +187,3 @@ export default function WorkScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.four,
-    gap: Spacing.three,
-  },
-  header: {
-    paddingVertical: Spacing.three,
-    gap: Spacing.one,
-  },
-  headerTitle: {
-    fontWeight: '800',
-  },
-  headerSubtitle: {
-    lineHeight: 20,
-  },
-  progressCard: {
-    padding: Spacing.four,
-    borderRadius: Spacing.three,
-    gap: Spacing.two,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginTop: Spacing.one,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  progressMeta: {
-    marginTop: Spacing.one,
-  },
-  phasesContainer: {
-    gap: Spacing.four,
-  },
-  phaseWrapper: {
-    gap: Spacing.two,
-  },
-  phaseTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    paddingHorizontal: Spacing.one,
-  },
-  tasksBox: {
-    borderRadius: Spacing.three,
-    padding: Spacing.two,
-    gap: Spacing.one,
-  },
-  taskRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.two,
-  },
-  taskText: {
-    flexShrink: 1,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
-
-// End of file. Tasks tracking setup active.

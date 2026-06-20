@@ -25,7 +25,9 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "react-native-worklets": "0.8.3",
+    "tailwindcss": "^3.4.19",
+    "twrnc": "^4.16.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

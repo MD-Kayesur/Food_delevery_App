@@ -1,10 +1,9 @@
-// Custom application tabs configuration with floating capsule layout matching the design image
+// Custom application tabs configuration with floating capsule layout matching the design image using twrnc
 import { Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { View, Pressable, StyleSheet, useColorScheme, Platform } from 'react-native';
+import { View, Pressable, Platform, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Colors } from '@/constants/theme';
+import tw from 'twrnc';
 
 export default function AppTabs() {
   return (
@@ -28,12 +27,12 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="work"
         options={{
-          title: 'Explore',
+          title: 'Work',
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'mappin', android: 'location_on', web: 'location_on' }}
+              name={{ ios: 'clipboard', android: 'assignment_turned_in', web: 'assignment_turned_in' }}
               size={24}
               tintColor={color}
             />
@@ -41,12 +40,12 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="work"
+        name="explore"
         options={{
-          title: 'Work',
+          title: 'Explore',
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'clipboard', android: 'assignment_turned_in', web: 'assignment_turned_in' }}
+              name={{ ios: 'mappin', android: 'location_on', web: 'location_on' }}
               size={24}
               tintColor={color}
             />
@@ -66,6 +65,19 @@ export default function AppTabs() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'person', android: 'person', web: 'person' }}
+              size={24}
+              tintColor={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
@@ -74,14 +86,27 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
 
+  const isDark = scheme === 'dark';
+  const bottomOffset = Platform.OS === 'ios' ? insets.bottom + 8 : 16;
+
+  // Active & inactive colors matching the orange and grey themes from the design
+  const activeColor = '#FF6C00';
+  const inactiveColor = isDark ? '#6E7175' : '#8E9195';
+
   return (
     <View
       style={[
-        styles.tabBarContainer,
+        tw`absolute left-5 right-5 h-[76px] rounded-[38px] border flex-row items-center justify-around px-2 shadow-lg`,
         {
-          backgroundColor: scheme === 'dark' ? '#0A0A0A' : '#F0F0F3',
-          borderColor: scheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
-          bottom: Platform.OS === 'ios' ? insets.bottom + 8 : 16,
+          backgroundColor: isDark ? '#0A0A0A' : '#F0F0F3',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+          bottom: bottomOffset,
+          // Custom shadow overrides for premium look on native devices
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 8,
         },
       ]}
     >
@@ -108,10 +133,6 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           });
         };
 
-        // Orange theme color from the image active state
-        const activeColor = '#FF6C00';
-        const inactiveColor = scheme === 'dark' ? '#6E7175' : '#8E9195';
-
         return (
           <Pressable
             key={route.key}
@@ -121,12 +142,12 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={styles.tabButton}
+            style={tw`flex-1 items-center justify-center h-full`}
           >
             {isFocused ? (
               <View
                 style={[
-                  styles.activeTabWrapper,
+                  tw`flex-row items-center justify-center py-2.5 px-4 rounded-[20px] border-[1.5px]`,
                   {
                     borderColor: activeColor,
                     backgroundColor: 'rgba(255, 108, 0, 0.08)',
@@ -138,7 +159,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 ) : null}
               </View>
             ) : (
-              <View style={styles.inactiveTabWrapper}>
+              <View style={tw`py-2.5 px-4 items-center justify-center`}>
                 {options.tabBarIcon ? (
                   options.tabBarIcon({ focused: false, color: inactiveColor, size: 24 })
                 ) : null}
@@ -150,45 +171,3 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBarContainer: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    height: 76,
-    borderRadius: 38,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-    // Premium soft floating shadows
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-  },
-  activeTabWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    borderWidth: 1.5,
-  },
-  inactiveTabWrapper: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
