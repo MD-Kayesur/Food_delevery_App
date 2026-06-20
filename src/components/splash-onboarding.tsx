@@ -49,6 +49,7 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
   const splashOpacity = useSharedValue(1);
 
   // Onboarding transition shared values
+  const slideTranslateX = useSharedValue(0);
   const slideOpacity = useSharedValue(1);
 
   useEffect(() => {
@@ -73,16 +74,21 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
     );
   }, []);
 
+  const updateSlideAndSlideIn = (screenWidth: number) => {
+    setCurrentSlide((prev) => prev + 1);
+    slideTranslateX.value = screenWidth;
+    slideTranslateX.value = withTiming(0, { duration: 250 });
+  };
+
   const handleNext = () => {
+    const screenWidth = Dimensions.get('window').width;
     if (currentSlide < SLIDES.length - 1) {
-      // Animate slide transition (fade out then fade in)
-      slideOpacity.value = withSequence(
-        withTiming(0, { duration: 200 }),
-        withTiming(1, { duration: 300 })
-      );
-      setTimeout(() => {
-        setCurrentSlide((prev) => prev + 1);
-      }, 200);
+      // Slide out current slide to the left
+      slideTranslateX.value = withTiming(-screenWidth, { duration: 250 }, (finished) => {
+        if (finished) {
+          runOnJS(updateSlideAndSlideIn)(screenWidth);
+        }
+      });
     } else {
       // Onboarding finished, fade out entire onboarding screen
       splashOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
@@ -103,6 +109,7 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
   }));
 
   const animatedSlideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: slideTranslateX.value }],
     opacity: slideOpacity.value,
   }));
 
