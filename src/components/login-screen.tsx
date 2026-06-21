@@ -21,9 +21,14 @@ import { storage } from '@/utils/storage';
 interface LoginScreenProps {
   onLoginSuccess: () => void;
   onNavigateToSignUp: () => void;
+  onNavigateToForgotPassword?: () => void;
 }
 
-export function LoginScreen({ onLoginSuccess, onNavigateToSignUp }: LoginScreenProps) {
+export function LoginScreen({
+  onLoginSuccess,
+  onNavigateToSignUp,
+  onNavigateToForgotPassword,
+}: LoginScreenProps) {
   const insets = useSafeAreaInsets();
   
   // States
@@ -196,7 +201,10 @@ export function LoginScreen({ onLoginSuccess, onNavigateToSignUp }: LoginScreenP
           </View>
 
           {/* Forgot Password */}
-          <Pressable style={tw`align-self-end items-end mb-8`}>
+          <Pressable
+            onPress={onNavigateToForgotPassword}
+            style={tw`align-self-end items-end mb-8`}
+          >
             <ThemedText style={tw`text-neutral-500 text-xs font-semibold`}>
               Forgot password?
             </ThemedText>
