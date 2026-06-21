@@ -3,6 +3,10 @@ import { SymbolView } from 'expo-symbols';
 import { Image, Platform, Pressable, View } from 'react-native';
 import tw from 'twrnc';
 import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 
 // Coordinates & Zoom Region for San Francisco Delivery Simulation
 const restaurantCoords = { latitude: 37.78825, longitude: -122.4324 };
@@ -71,36 +75,12 @@ export function OngoingTaskSection({
           </View>
 
           <View style={tw`h-[220px] rounded-xl overflow-hidden relative mb-4`}>
-            {Platform.OS === 'web' || Platform.OS === 'android' ? (
-              <>
-                <Image
-                  source={require('@/assets/Group 14928.png')}
-                  style={tw`w-full h-full`}
-                  resizeMode="cover"
-                />
-
-                {/* Map overlays / Pins */}
-                <View style={[tw`absolute w-8 h-8 rounded-full bg-[#FF6C00] items-center justify-center border-2 border-white`, { top: 32, left: 48 }]}>
-                  <SymbolView
-                    name={{ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }}
-                    size={14}
-                    tintColor="#ffffff"
-                  />
-                </View>
-
-                <View style={[tw`absolute w-8 h-8 rounded-full bg-red-600 items-center justify-center border-2 border-white`, { top: 64, right: 64 }]}>
-                  <SymbolView
-                    name={{ ios: 'house.fill', android: 'home', web: 'home' }}
-                    size={14}
-                    tintColor="#ffffff"
-                  />
-                </View>
-
-                {/* Rider Marker */}
-                <View style={[tw`absolute w-7 h-7 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-lg`, { top: 120, left: 140 }]}>
-                  <View style={tw`w-2.5 h-2.5 rounded-full bg-white`} />
-                </View>
-              </>
+            {Platform.OS === 'web' || (Platform.OS === 'android' && !isExpoGo) ? (
+              <Image
+                source={require('@/assets/Frame 263.png')}
+                style={tw`w-full h-full`}
+                resizeMode="cover"
+              />
             ) : (
               <MapView
                 style={tw`w-full h-full`}
