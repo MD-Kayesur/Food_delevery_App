@@ -20,9 +20,10 @@ import { storage } from '@/utils/storage';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
+  onNavigateToSignUp: () => void;
 }
 
-export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export function LoginScreen({ onLoginSuccess, onNavigateToSignUp }: LoginScreenProps) {
   const insets = useSafeAreaInsets();
   
   // States
@@ -267,7 +268,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <ThemedText style={tw`text-neutral-400 text-xs font-semibold`}>
               Don’t have an account?{' '}
             </ThemedText>
-            <Pressable>
+            <Pressable onPress={onNavigateToSignUp}>
               <ThemedText style={tw`text-[#FF6C00] text-xs font-bold`}>
                 Sign Up
               </ThemedText>
