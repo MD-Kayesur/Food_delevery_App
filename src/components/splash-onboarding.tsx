@@ -13,6 +13,7 @@ import { ThemedText } from './themed-text';
 
 interface SplashOnboardingProps {
   onFinish: () => void;
+  skipOnboarding?: boolean;
 }
 
 export interface SlideData {
@@ -39,7 +40,7 @@ export const SLIDES: SlideData[] = [
   },
 ];
 
-export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
+export function SplashOnboarding({ onFinish, skipOnboarding = false }: SplashOnboardingProps) {
   const [phase, setPhase] = useState<'splash' | 'onboarding'>('splash');
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -68,7 +69,11 @@ export function SplashOnboarding({ onFinish }: SplashOnboardingProps) {
       withTiming(1.0, { duration: 1000 }),
       withTiming(0, { duration: 600 }, (finished) => {
         if (finished) {
-          runOnJS(setPhase)('onboarding');
+          if (skipOnboarding) {
+            runOnJS(onFinish)();
+          } else {
+            runOnJS(setPhase)('onboarding');
+          }
         }
       })
     );
