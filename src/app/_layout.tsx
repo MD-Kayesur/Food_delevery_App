@@ -1,21 +1,46 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { useColorScheme } from 'react-native';
-import React, { useState } from 'react';
+import { View, useColorScheme } from 'react-native';
+import React, { useState, useEffect } from 'react';
 
 import { SplashOnboarding } from '@/components/splash-onboarding';
+import { LoginScreen } from '@/components/login-screen';
 import AppTabs from '@/components/app-tabs';
+import { storage } from '@/utils/storage';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [showSplashOnboarding, setShowSplashOnboarding] = useState(true);
+  const [authState, setAuthState] = useState<'splash' | 'login' | 'authenticated'>('splash');
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const token = await storage.getItem('authToken');
+        setHasToken(!!token);
+      } catch (e) {
+        setHasToken(false);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  if (hasToken === null) {
+    return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {showSplashOnboarding ? (
-        <SplashOnboarding onFinish={() => setShowSplashOnboarding(false)} />
+      {authState === 'splash' ? (
+        <SplashOnboarding
+          skipOnboarding={hasToken}
+          onFinish={() => setAuthState(hasToken ? 'authenticated' : 'login')}
+        />
+      ) : authState === 'login' ? (
+        <LoginScreen onLoginSuccess={() => setAuthState('authenticated')} />
       ) : (
         <AppTabs />
       )}
     </ThemeProvider>
   );
 }
+
