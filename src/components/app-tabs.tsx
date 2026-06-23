@@ -27,9 +27,9 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="work"
+        name="orders"
         options={{
-          title: 'Work',
+          title: 'Orders',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'clipboard', android: 'assignment_turned_in', web: 'assignment_turned_in' }}
