@@ -40,9 +40,9 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="location"
         options={{
-          title: 'Explore',
+          title: 'Location',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'mappin', android: 'location_on', web: 'location_on' }}
